@@ -20,14 +20,15 @@ let mapleader = " "
 
 call plug#begin(stdpath('data') . '/plugged')
 
+Plug 'glepnir/dashboard-nvim'
+Plug 'shaunsingh/nord.nvim'
+Plug 'nvim-lualine/lualine.nvim'
 Plug 'tpope/vim-fugitive'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-Plug 'vim-airline/vim-airline'
 Plug 'ryanoasis/vim-devicons'
 Plug 'airblade/vim-gitgutter'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'lukas-reineke/indent-blankline.nvim'
-Plug 'arcticicestudio/nord-vim'
 Plug 'jremmen/vim-ripgrep'
 Plug 'tpope/vim-sleuth'
 Plug 'sheerun/vim-polyglot'
@@ -44,15 +45,10 @@ Plug 'kyazdani42/nvim-web-devicons'
 
 call plug#end()
 
-
 set termguicolors
-let g:airline_powerline_fonts = 1
-
-let g:nord_cursor_line_number_background = 1
-let g:nord_bold_vertical_split_line = 1
-let g:nord_uniform_diff_background = 1
-let g:nord_italic = 1
-let g:nord_italic_comments = 1
+let g:nord_contrast = v:true
+let g:nord_cursorline_transparent = v:true
+let g:nord_disable_background = v:true
 
 " IndentLine {{
 let g:indentLine_char = '│'
@@ -62,6 +58,22 @@ let g:indentLine_color_term = 0
 let g:indentLine_bgcolor_term = "NONE"
 let g:indentLine_color_gui = '#3b4252'
 let g:indentLine_bgcolor_gui = "NONE"
+let g:indentLine_fileTypeExclude = ['dashboard']
+" }}
+
+" Dashboard {{
+
+let g:mapleader="\<Space>"
+let g:dashboard_default_executive ='telescope'
+nmap <Leader>ss :<C-u>SessionSave<CR>
+nmap <Leader>sl :<C-u>SessionLoad<CR>
+nnoremap <silent> <Leader>fh :DashboardFindHistory<CR>
+nnoremap <silent> <Leader>ff :DashboardFindFile<CR>
+nnoremap <silent> <Leader>tc :DashboardChangeColorscheme<CR>
+nnoremap <silent> <Leader>fa :DashboardFindWord<CR>
+nnoremap <silent> <Leader>fb :DashboardJumpMark<CR>
+nnoremap <silent> <Leader>cn :DashboardNewFile<CR>
+
 " }}
 
 autocmd FileType python let b:coc_root_patterns = ['.git', '.env', 'venv', '.venv', 'setup.cfg', 'setup.py', 'pyproject.toml', 'pyrightconfig.json']
@@ -92,9 +104,9 @@ let g:netrw_browse_split = 2
 let g:netrw_banner = 0
 
 colorscheme nord
-highlight Normal guibg=#242933
-highlight StatusLine guibg=#2E3440
-highlight SignColumn guibg=#242933
+" highlight Normal guibg=#242933
+" highlight StatusLine guibg=#2E3440
+" highlight SignColumn guibg=#242933
 
 " Begin Golang Syntax Config
 let g:go_highlight_structs = 1
@@ -114,3 +126,28 @@ let g:go_fmt_autosave = 1
 let g:go_mod_fmt_autosave = 1
 let g:go_gopls_enabled = 1
 " End Golang config
+
+" GitGutter config
+let g:gitgutter_sign_added = '│'
+let g:gitgutter_sign_modified = '│'
+let g:gitgutter_sign_removed = '│'
+let g:gitgutter_sign_removed_first_line = '│'
+let g:gitgutter_sign_removed_above_and_below = '│'
+let g:gitgutter_sign_modified_removed = '│'
+" End GitGutter config
+
+lua << END
+require('lualine').setup{
+    options = {
+        theme = 'nord'
+    },
+    inactive_sections = {
+        lualine_a = {'filename'},
+        lualine_b = {''},
+        lualine_c = {''},
+        lualine_x = {'progress'},
+        lualine_y = {''},
+        lualine_z = {'location'}
+    },
+}
+END
