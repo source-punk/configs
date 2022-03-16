@@ -1,11 +1,12 @@
 syntax on
-set t_Co=256
 set nocompatible
+set showcmd
 set cursorline
 set relativenumber
 set noerrorbells
 set tabstop=4 softtabstop=4
 set shiftwidth=4
+set scrolloff=10
 set expandtab
 set smartindent
 set nu
@@ -20,6 +21,8 @@ let mapleader = " "
 
 call plug#begin(stdpath('data') . '/plugged')
 
+Plug 'windwp/nvim-autopairs'
+Plug 'onsails/lspkind-nvim'
 Plug 'glepnir/dashboard-nvim'
 Plug 'shaunsingh/nord.nvim'
 Plug 'nvim-lualine/lualine.nvim'
@@ -38,6 +41,7 @@ Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'neovim/nvim-lspconfig'
+Plug 'tami5/lspsaga.nvim'
 Plug 'williamboman/nvim-lsp-installer', { 'branch': 'main' }
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
@@ -58,6 +62,7 @@ let g:nord_contrast = v:true
 let g:nord_cursorline_transparent = v:true
 let g:nord_disable_background = v:true
 
+
 " IndentLine {{
 let g:indentLine_char = '│'
 let g:indentLine_first_char = '│'
@@ -70,7 +75,6 @@ let g:indentLine_fileTypeExclude = ['dashboard', 'lsp-installer']
 " }}
 
 " Dashboard {{
-
 let g:mapleader="\<Space>"
 let g:dashboard_default_executive ='telescope'
 nmap <Leader>ss :<C-u>SessionSave<CR>
@@ -81,11 +85,8 @@ nnoremap <silent> <Leader>tc :DashboardChangeColorscheme<CR>
 nnoremap <silent> <Leader>fa :DashboardFindWord<CR>
 nnoremap <silent> <Leader>fb :DashboardJumpMark<CR>
 nnoremap <silent> <Leader>cn :DashboardNewFile<CR>
-
 " }}
 
-" autocmd FileType python let b:coc_root_patterns = ['.git', '.env', 'venv', '.venv', 'setup.cfg', 'setup.py', 'pyproject.toml', 'pyrightconfig.json']
-" 
 
 let NERDTreeMinimalUI=1
 let g:NERDTreeLimitedSyntax = 1
@@ -115,9 +116,9 @@ let g:netrw_browse_split = 2
 let g:netrw_banner = 0
 
 colorscheme nord
-" highlight Normal guibg=#242933
-" highlight StatusLine guibg=#2E3440
-" highlight SignColumn guibg=#242933
+
+hi Pmenu guibg=#2E3440
+hi PmenuSbar guibg=#2E3440
 
 " GitGutter config
 let g:gitgutter_sign_added = '│'
@@ -138,7 +139,7 @@ nnoremap <silent> <C-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
 nnoremap <silent> <C-p> <cmd>Lspsaga diagnostic_jump_prev<CR>
 nnoremap <silent> <C-n> <cmd>Lspsaga diagnostic_jump_next<CR>
 nnoremap <silent> gf    <cmd>lua vim.lsp.buf.formatting()<CR>
-nnoremap <silent> gn    <cmd>lua vim.lsp.buf.rename()<CR>
+nnoremap <silent> gn    <cmd>Lspsaga rename<CR>
 nnoremap <silent> ga    <cmd>Lspsaga code_action<CR>
 xnoremap <silent> ga    <cmd>Lspsaga range_code_action<CR>
 nnoremap <silent> gs    <cmd>Lspsaga signature_help<CR>
@@ -146,6 +147,7 @@ nnoremap <silent> gs    <cmd>Lspsaga signature_help<CR>
 lua << END
 require('lsp')
 require('lsp-install')
+require('nvim-autopairs').setup{}
 require('lualine').setup{
     options = {
         theme = 'nord'
@@ -159,6 +161,7 @@ require('lualine').setup{
         lualine_z = {'location'}
     },
 }
+
 
 -- treesitter config
 require'nvim-treesitter.configs'.setup{
@@ -182,7 +185,8 @@ require'nvim-treesitter.configs'.setup{
 }
 -- cmp config
 local cmp = require'cmp'
-
+local lspkind = require('lspkind')
+local cmp_autopairs = require('nvim-autopairs.completion.cmp')
   cmp.setup({
     snippet = {
       -- REQUIRED - you must specify a snippet engine
@@ -194,6 +198,8 @@ local cmp = require'cmp'
       end,
     },
     mapping = {
+      ["<C-k>"] = cmp.mapping.select_prev_item(),
+      ["<C-j>"] = cmp.mapping.select_next_item(),
       ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
       ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
       ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
@@ -212,8 +218,22 @@ local cmp = require'cmp'
       -- { name = 'snippy' }, -- For snippy users.
     }, {
       { name = 'buffer' },
-    })
+    }),
+    documentation = {
+      border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+    },
+    view = {
+      entries = 'custom'
+    },
+    formatting = {
+      format = lspkind.cmp_format({
+      })
+    },
+    experimental = {
+      ghost_text = true,
+    }
   })
+  cmp.event:on( 'confirm_done', cmp_autopairs.on_confirm_done({  map_char = { tex = '' } }))
 
   -- Set configuration for specific filetype.
   cmp.setup.filetype('gitcommit', {
@@ -244,7 +264,7 @@ local cmp = require'cmp'
   local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
   -- Enable the following language servers
-  local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua' }
+  local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls' }
   for _, lsp in ipairs(servers) do
     require('lspconfig')[lsp].setup {
       capabilities = capabilities,
@@ -277,6 +297,10 @@ require'lspconfig'.pylsp.setup({
   },
   on_attach = on_attach,
 })
+
+-- lspsaga config
+local saga = require 'lspsaga'
+saga.init_lsp_saga()
 
 END
 
