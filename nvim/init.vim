@@ -47,8 +47,8 @@ Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
-Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/cmp-vsnip'
+Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/vim-vsnip'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'kyazdani42/nvim-web-devicons'
@@ -226,6 +226,7 @@ local cmp_autopairs = require('nvim-autopairs.completion.cmp')
       { name = 'buffer' },
     }),
     window = {
+      completion = cmp.config.window.bordered(),
       documentation = cmp.config.window.bordered(),
     },
     view = {
@@ -252,6 +253,7 @@ local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 
   -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
   cmp.setup.cmdline('/', {
+    mapping = cmp.mapping.preset.cmdline(),
     sources = {
       { name = 'buffer' }
     }
@@ -259,6 +261,7 @@ local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 
   -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
   cmp.setup.cmdline(':', {
+    mapping = cmp.mapping.preset.cmdline(),
     sources = cmp.config.sources({
       { name = 'path' }
     }, {
