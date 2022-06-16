@@ -166,7 +166,7 @@ require('lualine').setup{
 -- treesitter config
 require'nvim-treesitter.configs'.setup{
   -- One of "all", "maintained" (parsers with maintainers), or a list of languages
-  ensure_installed = "maintained",
+  ensure_installed = "all",
   -- Install languages synchronously (only applied to `ensure_installed`)
   sync_install = false,
   -- List of parsers to ignore installing
@@ -203,7 +203,13 @@ local cmp_autopairs = require('nvim-autopairs.completion.cmp')
       ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
       ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
       ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
-      ['<C-y>'] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `<C-y>` mapping.
+      ['<C-y>'] = cmp.mapping(
+        cmp.mapping.confirm {
+          behavior = cmp.ConfirmBehavior.Insert,
+          select = true,
+        },
+        { "i", "c" }
+      ),
       ['<C-e>'] = cmp.mapping({
         i = cmp.mapping.abort(),
         c = cmp.mapping.close(),
@@ -219,8 +225,8 @@ local cmp_autopairs = require('nvim-autopairs.completion.cmp')
     }, {
       { name = 'buffer' },
     }),
-    documentation = {
-      border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+    window = {
+      documentation = cmp.config.window.bordered(),
     },
     view = {
       entries = 'custom'
@@ -264,7 +270,7 @@ local cmp_autopairs = require('nvim-autopairs.completion.cmp')
   local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
   -- Enable the following language servers
-  local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls' }
+  local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls' }
   for _, lsp in ipairs(servers) do
     require('lspconfig')[lsp].setup {
       capabilities = capabilities,
