@@ -33,9 +33,6 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'tpope/vim-sleuth'
 Plug 'sheerun/vim-polyglot'
-Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
-Plug 'scrooloose/nerdtree'
-Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-telescope/telescope.nvim'
@@ -50,8 +47,9 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/vim-vsnip'
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'kyazdani42/nvim-web-devicons'
+Plug 'kyazdani42/nvim-tree.lua'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
 call plug#end()
 
@@ -81,16 +79,11 @@ nmap <Leader>ss :<C-u>SessionSave<CR>
 nmap <Leader>sl :<C-u>SessionLoad<CR>
 nnoremap <silent> <Leader>fh :DashboardFindHistory<CR>
 nnoremap <silent> <Leader>ff :DashboardFindFile<CR>
-nnoremap <silent> <Leader>tc :DashboardChangeColorscheme<CR>
 nnoremap <silent> <Leader>fa :DashboardFindWord<CR>
 nnoremap <silent> <Leader>fb :DashboardJumpMark<CR>
 nnoremap <silent> <Leader>cn :DashboardNewFile<CR>
 " }}
 
-
-let NERDTreeMinimalUI=1
-let g:NERDTreeLimitedSyntax = 1
-let g:NERDTreeGitStatusWithFlags = 1
 
 nnoremap <esc> :noh<return><esc>
 
@@ -101,12 +94,9 @@ nnoremap <leader>fa <cmd>lua require('telescope.builtin').live_grep()<cr>
 nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
 nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 
-nnoremap <leader>n :NERDTreeFocus<CR>
-nnoremap <C-n> :NERDTree<CR>
-nnoremap <C-t> :NERDTreeToggle<CR>
-nnoremap <C-f> :NERDTreeFind<CR>
-
-let NERDTreeShowHidden=1
+nnoremap <leader>n :NvimTreeToggle<CR>
+nnoremap <leader>t :NvimTreeFocus<CR>
+nnoremap <C-f> :NvimTreeFindFile<CR>
 
 if executable('rg')
     let g:rg_derive_root='true'
@@ -148,6 +138,14 @@ lua << END
 require('lsp')
 require('lsp-install')
 require('nvim-autopairs').setup{}
+require("nvim-tree").setup{
+  view = {
+    adaptive_size = true
+  },
+  renderer = {
+    highlight_git = true,
+  },
+}
 require('lualine').setup{
     options = {
         theme = 'nord'
@@ -183,6 +181,7 @@ require'nvim-treesitter.configs'.setup{
     additional_vim_regex_highlighting = false,
   },
 }
+
 -- cmp config
 local cmp = require'cmp'
 local lspkind = require('lspkind')
