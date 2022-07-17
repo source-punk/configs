@@ -16,6 +16,7 @@ set noswapfile
 set undofile
 set incsearch
 set signcolumn=yes
+set laststatus=3
 
 let mapleader = " "
 
@@ -98,6 +99,7 @@ nnoremap <leader>n :NvimTreeToggle<CR>
 nnoremap <leader>t :NvimTreeFocus<CR>
 nnoremap <C-f> :NvimTreeFindFile<CR>
 
+
 if executable('rg')
     let g:rg_derive_root='true'
 endif
@@ -146,6 +148,7 @@ require("nvim-tree").setup{
     highlight_git = true,
   },
 }
+
 require('lualine').setup{
     options = {
         theme = 'nord'
@@ -309,6 +312,17 @@ require'lspconfig'.pylsp.setup({
 -- lspsaga config
 local saga = require 'lspsaga'
 saga.init_lsp_saga()
+
+vim.opt.fillchars = {
+  horiz     = '━',
+  horizup   = '┻',
+  horizdown = '┳',
+  vert      = '┃',
+  vertleft  = '┫',
+  vertright = '┣',
+  verthoriz = '╋',
+}
+
 
 END
 
