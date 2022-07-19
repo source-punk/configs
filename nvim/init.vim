@@ -60,6 +60,7 @@ set termguicolors
 let g:nord_contrast = v:true
 let g:nord_cursorline_transparent = v:true
 let g:nord_disable_background = v:true
+let g:nord_uniform_diff_background = v:true
 
 
 " IndentLine {{
