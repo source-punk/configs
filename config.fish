@@ -5,6 +5,10 @@ function fish_user_key_bindings
   fish_default_key_bindings
 end
 
+function tssh
+  ssh $argv -t "tmux attach || tmux new"
+end
+
 if status is-interactive
     # Commands to run in interactive sessions can go here
 end
@@ -24,6 +28,8 @@ alias vim="nvim"
 alias python="python3"
 alias pip="pip3"
 alias cmatrix="cmatrix -C blue"
+alias psql="pgcli"
+alias cat="bat"
 
 export MANPAGER="less -s -M +Gg"
 export LESS="--RAW-CONTROL-CHARS"
@@ -34,7 +40,7 @@ nvm use lts &> /dev/null
 starship init fish | source
 
 # TMUX startup
-if command -v tmux > /dev/null
-  [ -z $TMUX ] && exec tmux new -A -s home
-end
+# if command -v tmux > /dev/null
+#   [ -z $TMUX ] && exec tmux new -A -s home
+# end
 

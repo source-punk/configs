@@ -18,14 +18,20 @@ set incsearch
 set signcolumn=yes
 set laststatus=3
 
+" augroup fmt
+"   autocmd!
+"   autocmd BufWritePre * undojoin | Neoformat
+" augroup END
+
 let mapleader = " "
 
 call plug#begin(stdpath('data') . '/plugged')
 
+" Plug 'sbdchd/neoformat'
 Plug 'windwp/nvim-autopairs'
 Plug 'onsails/lspkind-nvim'
-Plug 'glepnir/dashboard-nvim'
 Plug 'shaunsingh/nord.nvim'
+Plug 'shaunsingh/solarized.nvim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'tpope/vim-fugitive'
 Plug 'ryanoasis/vim-devicons'
@@ -38,9 +44,10 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
-Plug 'neovim/nvim-lspconfig'
 Plug 'tami5/lspsaga.nvim'
-Plug 'williamboman/nvim-lsp-installer', { 'branch': 'main' }
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
+Plug 'neovim/nvim-lspconfig'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
@@ -51,17 +58,26 @@ Plug 'hrsh7th/vim-vsnip'
 Plug 'kyazdani42/nvim-web-devicons'
 Plug 'kyazdani42/nvim-tree.lua'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'windwp/nvim-ts-autotag'
 
 call plug#end()
 
 set completeopt=menu,menuone,noselect
 
 set termguicolors
+
 let g:nord_contrast = v:true
 let g:nord_cursorline_transparent = v:true
 let g:nord_disable_background = v:true
 let g:nord_uniform_diff_background = v:true
 
+let g:solarized_italic_comments = v:true
+let g:solarized_italic_keywords = v:true
+let g:solarized_italic_functions = v:true
+let g:solarized_italic_variables = v:false
+let g:solarized_contrast = v:false
+let g:solarized_borders = v:true
+let g:solarized_disable_background = v:false
 
 " IndentLine {{
 let g:indentLine_char = '│'
@@ -71,21 +87,7 @@ let g:indentLine_color_term = 0
 let g:indentLine_bgcolor_term = "NONE"
 let g:indentLine_color_gui = '#3b4252'
 let g:indentLine_bgcolor_gui = "NONE"
-let g:indentLine_fileTypeExclude = ['dashboard', 'lsp-installer']
 " }}
-
-" Dashboard {{
-let g:mapleader="\<Space>"
-let g:dashboard_default_executive ='telescope'
-nmap <Leader>ss :<C-u>SessionSave<CR>
-nmap <Leader>sl :<C-u>SessionLoad<CR>
-nnoremap <silent> <Leader>fh :DashboardFindHistory<CR>
-nnoremap <silent> <Leader>ff :DashboardFindFile<CR>
-nnoremap <silent> <Leader>fa :DashboardFindWord<CR>
-nnoremap <silent> <Leader>fb :DashboardJumpMark<CR>
-nnoremap <silent> <Leader>cn :DashboardNewFile<CR>
-" }}
-
 
 nnoremap <esc> :noh<return><esc>
 
@@ -95,6 +97,8 @@ nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files({hidden = t
 nnoremap <leader>fa <cmd>lua require('telescope.builtin').live_grep()<cr>
 nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
 nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
+nnoremap <leader>fg <cmd>lua require('telescope.builtin').git_status()<cr>
+nnoremap <leader>fr <cmd>lua require('telescope.builtin').lsp_references()<cr>
 
 nnoremap <leader>n :NvimTreeToggle<CR>
 nnoremap <leader>t :NvimTreeFocus<CR>
@@ -109,6 +113,7 @@ let g:netrw_browse_split = 2
 let g:netrw_banner = 0
 
 colorscheme nord
+" colorscheme solarized
 
 hi Pmenu guibg=#2E3440
 hi PmenuSbar guibg=#2E3440
@@ -125,7 +130,6 @@ let g:gitgutter_sign_modified_removed = '│'
 " >> Lsp key bindings
 nnoremap <silent> gd    <cmd>lua vim.lsp.buf.definition()<CR>
 nnoremap <silent> gD    <cmd>lua vim.lsp.buf.declaration()<CR>
-nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
 nnoremap <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
 nnoremap <silent> K     <cmd>Lspsaga hover_doc<CR>
 nnoremap <silent> <C-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
@@ -138,9 +142,9 @@ xnoremap <silent> ga    <cmd>Lspsaga range_code_action<CR>
 nnoremap <silent> gs    <cmd>Lspsaga signature_help<CR>
 
 lua << END
-require('lsp')
-require('lsp-install')
-require('nvim-autopairs').setup{}
+require("mason").setup {}
+require("mason-lspconfig").setup {}
+require('nvim-autopairs').setup {}
 
 require'nvim-web-devicons'.setup {
  -- your personnal icons can go here (to override)
@@ -202,131 +206,124 @@ require'nvim-treesitter.configs'.setup{
     -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
   },
+  autotag = {
+    enable = true,
+  },
 }
+require('nvim-ts-autotag').setup()
 
 -- cmp config
 local cmp = require'cmp'
 local lspkind = require('lspkind')
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-  cmp.setup({
-    snippet = {
-      -- REQUIRED - you must specify a snippet engine
-      expand = function(args)
-        vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-        -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
-        -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
-        -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
-      end,
-    },
-    mapping = {
-      ["<C-k>"] = cmp.mapping.select_prev_item(),
-      ["<C-j>"] = cmp.mapping.select_next_item(),
-      ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
-      ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
-      ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
-      ['<C-y>'] = cmp.mapping(
-        cmp.mapping.confirm {
-          behavior = cmp.ConfirmBehavior.Insert,
-          select = true,
-        },
-        { "i", "c" }
-      ),
-      ['<C-e>'] = cmp.mapping({
-        i = cmp.mapping.abort(),
-        c = cmp.mapping.close(),
-      }),
-      ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    },
-    sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-      { name = 'vsnip' }, -- For vsnip users.
-      -- { name = 'luasnip' }, -- For luasnip users.
-      -- { name = 'ultisnips' }, -- For ultisnips users.
-      -- { name = 'snippy' }, -- For snippy users.
-    }, {
-      { name = 'buffer' },
+cmp.setup({
+  snippet = {
+    -- REQUIRED - you must specify a snippet engine
+    expand = function(args)
+      vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+      -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+      -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
+      -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+    end,
+  },
+  mapping = {
+    ["<C-k>"] = cmp.mapping.select_prev_item(),
+    ["<C-j>"] = cmp.mapping.select_next_item(),
+    ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
+    ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
+    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
+    ['<C-y>'] = cmp.mapping(
+      cmp.mapping.confirm {
+        behavior = cmp.ConfirmBehavior.Insert,
+        select = true,
+      },
+      { "i", "c" }
+    ),
+    ['<C-e>'] = cmp.mapping({
+      i = cmp.mapping.abort(),
+      c = cmp.mapping.close(),
     }),
-    window = {
-      completion = cmp.config.window.bordered(),
-      documentation = cmp.config.window.bordered(),
-    },
-    view = {
-      entries = 'custom'
-    },
-    formatting = {
-      format = lspkind.cmp_format({
-      })
-    },
-    experimental = {
-      ghost_text = true,
-    }
-  })
-  cmp.event:on( 'confirm_done', cmp_autopairs.on_confirm_done({  map_char = { tex = '' } }))
-
-  -- Set configuration for specific filetype.
-  cmp.setup.filetype('gitcommit', {
-    sources = cmp.config.sources({
-      { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it. 
-    }, {
-      { name = 'buffer' },
+    ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+  },
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'vsnip' }, -- For vsnip users.
+    -- { name = 'luasnip' }, -- For luasnip users.
+    -- { name = 'ultisnips' }, -- For ultisnips users.
+    -- { name = 'snippy' }, -- For snippy users.
+  }, {
+    { name = 'buffer' },
+  }),
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+  },
+  view = {
+    entries = 'custom'
+  },
+  formatting = {
+    format = lspkind.cmp_format({
     })
+  },
+  experimental = {
+    ghost_text = true,
+  }
+})
+cmp.event:on( 'confirm_done', cmp_autopairs.on_confirm_done({  map_char = { tex = '' } }))
+
+-- Set configuration for specific filetype.
+cmp.setup.filetype('gitcommit', {
+  sources = cmp.config.sources({
+    { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it. 
+  }, {
+    { name = 'buffer' },
   })
+})
 
-  -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-  cmp.setup.cmdline('/', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = {
-      { name = 'buffer' }
-    }
+-- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
+cmp.setup.cmdline('/', {
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = {
+    { name = 'buffer' }
+  }
+})
+
+-- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+cmp.setup.cmdline(':', {
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = cmp.config.sources({
+    { name = 'path' }
+  }, {
+    { name = 'cmdline' }
   })
+})
 
-  -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-  cmp.setup.cmdline(':', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = cmp.config.sources({
-      { name = 'path' }
-    }, {
-      { name = 'cmdline' }
-    })
-  })
+-- Setup lspconfig.
+local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
-  -- Setup lspconfig.
-  local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+-- Enable the following language servers
+local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls' }
+for _, lsp in ipairs(servers) do
+  require('lspconfig')[lsp].setup {
+    capabilities = capabilities,
+  }
+end
 
-  -- Enable the following language servers
-  local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls' }
-  for _, lsp in ipairs(servers) do
-    require('lspconfig')[lsp].setup {
-      capabilities = capabilities,
-    }
-  end
-
-require'lspconfig'.pylsp.setup({
-  cmd = {'pylsp'},
+require('lspconfig')['pylsp'].setup {
   capabilities = capabilities,
-  root_dir = function(fname)
-    local root_files = {
-      'pyproject.toml',
-      'setup.py',
-      'setup.cfg',
-      'requirements.txt',
-      'Pipfile',
-    }
-    return util.root_pattern(unpack(root_files))(fname) or util.find_git_ancestor(fname)
-  end,
   settings = {
     pylsp = {
-      configurationSources = {'flake8'},
+      configurationSources = { 'flake8' },
       plugins = {
-        pylint = { enabled = false },
-        flake8 = { enabled = true },
-        pycodestyle = { enabled = false },
-        pyflakes = { enabled = false },
+        flake8 = { enabled = true, ignore = { 'E501' } },
+        pylint = { enabled = false, ignore = { 'E501' } },
+        pycodestyle = { enabled = false, ignore = { 'E501' } },
+        pyflakes = { enabled = false, ignore = { 'E501' } },
+        mccabe = { enabled = false, ignore = { 'E501' } },
       }
     }
   },
-  on_attach = on_attach,
-})
+}
 
 -- lspsaga config
 local saga = require 'lspsaga'
@@ -341,7 +338,6 @@ vim.opt.fillchars = {
   vertright = '┣',
   verthoriz = '╋',
 }
-
 
 END
 
