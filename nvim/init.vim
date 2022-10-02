@@ -155,7 +155,10 @@ saga.init_lsp_saga({
   saga_winblend = 0,
 })
 
-local colors = require("catppuccin.palettes").get_palette()
+local latte = require("catppuccin.palettes").get_palette "latte"
+local frappe = require("catppuccin.palettes").get_palette "frappe"
+local macchiato = require("catppuccin.palettes").get_palette "macchiato"
+local mocha = require("catppuccin.palettes").get_palette "mocha"
 require("catppuccin").setup({
   transparent_background = false,
   term_colors = false,
@@ -208,8 +211,19 @@ require("catppuccin").setup({
       },
     },
   },
-  custom_highlights = {
-    LspFloatWinNormal = { bg = colors.base },
+  highlight_overrides = {
+    mocha = {
+      LspFloatWinNormal = { bg = mocha.base },
+    },
+    frappe = {
+      LspFloatWinNormal = { bg = frappe.base },
+    },
+    macchiato = {
+      LspFloatWinNormal = { bg = macchiato.base },
+    },
+    latte = {
+      LspFloatWinNormal = { bg = latte.base },
+    },
   },
 })
 
