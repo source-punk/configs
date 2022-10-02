@@ -18,25 +18,19 @@ set incsearch
 set signcolumn=yes
 set laststatus=3
 
-" augroup fmt
-"   autocmd!
-"   autocmd BufWritePre * undojoin | Neoformat
-" augroup END
-
 let mapleader = " "
 
 call plug#begin(stdpath('data') . '/plugged')
 
-" Plug 'sbdchd/neoformat'
 Plug 'windwp/nvim-autopairs'
 Plug 'onsails/lspkind-nvim'
+Plug 'catppuccin/nvim', {'as': 'catppuccin'}
 Plug 'shaunsingh/nord.nvim'
 Plug 'shaunsingh/solarized.nvim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'tpope/vim-fugitive'
 Plug 'ryanoasis/vim-devicons'
 Plug 'airblade/vim-gitgutter'
-Plug 'christoomey/vim-tmux-navigator'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'tpope/vim-sleuth'
 Plug 'sheerun/vim-polyglot'
@@ -44,7 +38,7 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
-Plug 'tami5/lspsaga.nvim'
+Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
 Plug 'neovim/nvim-lspconfig'
@@ -66,10 +60,13 @@ set completeopt=menu,menuone,noselect
 
 set termguicolors
 
-let g:nord_contrast = v:true
+let g:nord_contrast = v:false
 let g:nord_cursorline_transparent = v:true
 let g:nord_disable_background = v:true
 let g:nord_uniform_diff_background = v:true
+
+" hi Pmenu guibg=#2E3440
+" hi PmenuSbar guibg=#2E3440
 
 let g:solarized_italic_comments = v:true
 let g:solarized_italic_keywords = v:true
@@ -79,13 +76,15 @@ let g:solarized_contrast = v:false
 let g:solarized_borders = v:true
 let g:solarized_disable_background = v:false
 
+let g:catppuccin_flavour = "mocha" " latte, frappe, macchiato, mocha
+
 " IndentLine {{
 let g:indentLine_char = '│'
 let g:indentLine_first_char = '│'
 let g:indentLine_showFirstIndentLevel = 1
 let g:indentLine_color_term = 0
 let g:indentLine_bgcolor_term = "NONE"
-let g:indentLine_color_gui = '#3b4252'
+" let g:indentLine_color_gui = '#3b4252'
 let g:indentLine_bgcolor_gui = "NONE"
 " }}
 
@@ -99,6 +98,7 @@ nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
 nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 nnoremap <leader>fg <cmd>lua require('telescope.builtin').git_status()<cr>
 nnoremap <leader>fr <cmd>lua require('telescope.builtin').lsp_references()<cr>
+nnoremap <leader>fo <cmd>lua require('telescope.builtin').resume()<cr>
 
 nnoremap <leader>n :NvimTreeToggle<CR>
 nnoremap <leader>t :NvimTreeFocus<CR>
@@ -106,17 +106,11 @@ nnoremap <C-f> :NvimTreeFindFile<CR>
 
 
 if executable('rg')
-    let g:rg_derive_root='true'
+  let g:rg_derive_root='true'
 endif
 
 let g:netrw_browse_split = 2
 let g:netrw_banner = 0
-
-colorscheme nord
-" colorscheme solarized
-
-hi Pmenu guibg=#2E3440
-hi PmenuSbar guibg=#2E3440
 
 " GitGutter config
 let g:gitgutter_sign_added = '│'
@@ -132,40 +126,100 @@ nnoremap <silent> gd    <cmd>lua vim.lsp.buf.definition()<CR>
 nnoremap <silent> gD    <cmd>lua vim.lsp.buf.declaration()<CR>
 nnoremap <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
 nnoremap <silent> K     <cmd>Lspsaga hover_doc<CR>
-nnoremap <silent> <C-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
-nnoremap <silent> <C-p> <cmd>Lspsaga diagnostic_jump_prev<CR>
-nnoremap <silent> <C-n> <cmd>Lspsaga diagnostic_jump_next<CR>
+nnoremap <silent> gk    <cmd>Lspsaga diagnostic_jump_prev<CR>
+nnoremap <silent> gj    <cmd>Lspsaga diagnostic_jump_next<CR>
 nnoremap <silent> gf    <cmd>lua vim.lsp.buf.formatting()<CR>
 nnoremap <silent> gn    <cmd>Lspsaga rename<CR>
 nnoremap <silent> ga    <cmd>Lspsaga code_action<CR>
 xnoremap <silent> ga    <cmd>Lspsaga range_code_action<CR>
 nnoremap <silent> gs    <cmd>Lspsaga signature_help<CR>
+" End LspSaga bindings
+
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
 
 lua << END
 require("mason").setup {}
 require("mason-lspconfig").setup {}
 require('nvim-autopairs').setup {}
 
+-- lspsaga config
+local keymap = vim.keymap.set
+local saga = require 'lspsaga'
+saga.init_lsp_saga({
+  symbol_in_winbar = {
+    in_custom = true
+  },
+  saga_winblend = 0,
+})
+
+local colors = require("catppuccin.palettes").get_palette()
+require("catppuccin").setup({
+  transparent_background = false,
+  term_colors = false,
+  compile = {
+    enabled = true,
+    path = vim.fn.stdpath("cache") .. "/catppuccin",
+  },
+  dim_inactive = {
+    enabled = false,
+    shade = "dark",
+    percentage = 0.15,
+  },
+  styles = {
+    comments = { "italic" },
+    conditionals = { "italic" },
+    loops = { "italic" },
+    functions = {},
+    keywords = { "italic" },
+    strings = {},
+    variables = {},
+    numbers = {},
+    booleans = {},
+    properties = {},
+    types = {},
+    operators = {},
+  },
+  integrations = {
+    treesitter = true,
+    cmp = true,
+    telescope = true,
+    nvimtree = {
+      enabled = true,
+      show_root = false,
+    },
+    gitgutter = true,
+    lsp_saga = true,
+    native_lsp = {
+      enabled = true,
+      virtual_text = {
+        errors = { "italic" },
+        hints = { "italic" },
+        warnings = { "italic" },
+        information = { "italic" },
+      },
+      underlines = {
+        errors = { "underline" },
+        hints = { "underline" },
+        warnings = { "underline" },
+        information = { "underline" },
+      },
+    },
+  },
+  custom_highlights = {
+    LspFloatWinNormal = { bg = colors.base },
+  },
+})
+
 require'nvim-web-devicons'.setup {
- -- your personnal icons can go here (to override)
- -- you can specify color or cterm_color instead of specifying both of them
- -- DevIcon will be appended to `name`
- override = {
-  zsh = {
-    icon = "",
-    color = "#428850",
-    cterm_color = "65",
-    name = "Zsh"
-  }
- };
- -- globally enable default icons (default to false)
- -- will get overriden by `get_icons` option
  default = true;
 }
 
 require("nvim-tree").setup{
   view = {
-    adaptive_size = true
+    adaptive_size = true,
   },
   renderer = {
     highlight_git = true,
@@ -174,7 +228,9 @@ require("nvim-tree").setup{
 
 require('lualine').setup{
     options = {
-        theme = 'nord'
+        -- theme = 'nord',
+        theme = 'catppuccin',
+        icons_enabled = true,
     },
     inactive_sections = {
         lualine_a = {'filename'},
@@ -302,7 +358,7 @@ cmp.setup.cmdline(':', {
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 -- Enable the following language servers
-local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls' }
+local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer' }
 for _, lsp in ipairs(servers) do
   require('lspconfig')[lsp].setup {
     capabilities = capabilities,
@@ -315,19 +371,15 @@ require('lspconfig')['pylsp'].setup {
     pylsp = {
       configurationSources = { 'flake8' },
       plugins = {
-        flake8 = { enabled = true, ignore = { 'E501' } },
-        pylint = { enabled = false, ignore = { 'E501' } },
-        pycodestyle = { enabled = false, ignore = { 'E501' } },
-        pyflakes = { enabled = false, ignore = { 'E501' } },
-        mccabe = { enabled = false, ignore = { 'E501' } },
+        flake8 = { enabled = true, ignore = { 'E501', 'W503' } },
+        pylint = { enabled = false, ignore = { 'E501', 'W503' } },
+        pycodestyle = { enabled = false, ignore = { 'E501', 'W503' } },
+        pyflakes = { enabled = false, ignore = { 'E501', 'W503' } },
+        mccabe = { enabled = false, ignore = { 'E501', 'W503' } },
       }
     }
   },
 }
-
--- lspsaga config
-local saga = require 'lspsaga'
-saga.init_lsp_saga()
 
 vim.opt.fillchars = {
   horiz     = '━',
@@ -341,3 +393,7 @@ vim.opt.fillchars = {
 
 END
 
+
+colorscheme catppuccin
+" colorscheme nord
+" colorscheme solarized

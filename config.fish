@@ -1,3 +1,5 @@
+if status is-interactive
+
 set fish_greeting
 set fish_color_valid_path
 
@@ -23,7 +25,6 @@ end
 alias bat="bat --paging=never"
 alias l="exa -l"
 alias ls="exa"
-alias ssh="kitty +kitten ssh"
 alias vim="nvim"
 alias python="python3"
 alias pip="pip3"
@@ -43,4 +44,4 @@ starship init fish | source
 # if command -v tmux > /dev/null
 #   [ -z $TMUX ] && exec tmux new -A -s home
 # end
-
+end
