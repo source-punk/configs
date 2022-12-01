@@ -17,12 +17,15 @@ set undofile
 set incsearch
 set signcolumn=yes
 set laststatus=3
+" set shell=/bin/zsh
 
 let mapleader = " "
 
 call plug#begin(stdpath('data') . '/plugged')
 
+Plug 'lewis6991/impatient.nvim'
 Plug 'windwp/nvim-autopairs'
+Plug 'windwp/nvim-ts-autotag'
 Plug 'onsails/lspkind-nvim'
 Plug 'catppuccin/nvim', {'as': 'catppuccin'}
 Plug 'shaunsingh/nord.nvim'
@@ -30,7 +33,7 @@ Plug 'shaunsingh/solarized.nvim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'tpope/vim-fugitive'
 Plug 'ryanoasis/vim-devicons'
-Plug 'airblade/vim-gitgutter'
+Plug 'lewis6991/gitsigns.nvim'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'tpope/vim-sleuth'
 Plug 'sheerun/vim-polyglot'
@@ -52,7 +55,6 @@ Plug 'hrsh7th/vim-vsnip'
 Plug 'kyazdani42/nvim-web-devicons'
 Plug 'kyazdani42/nvim-tree.lua'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'windwp/nvim-ts-autotag'
 
 call plug#end()
 
@@ -104,6 +106,8 @@ nnoremap <leader>n :NvimTreeToggle<CR>
 nnoremap <leader>t :NvimTreeFocus<CR>
 nnoremap <C-f> :NvimTreeFindFile<CR>
 
+nnoremap <leader><leader> :bprevious<cr>
+
 
 if executable('rg')
   let g:rg_derive_root='true'
@@ -112,15 +116,6 @@ endif
 let g:netrw_browse_split = 2
 let g:netrw_banner = 0
 
-" GitGutter config
-let g:gitgutter_sign_added = '│'
-let g:gitgutter_sign_modified = '│'
-let g:gitgutter_sign_removed = '│'
-let g:gitgutter_sign_removed_first_line = '│'
-let g:gitgutter_sign_removed_above_and_below = '│'
-let g:gitgutter_sign_modified_removed = '│'
-" End GitGutter config
-
 " >> Lsp key bindings
 nnoremap <silent> gd    <cmd>lua vim.lsp.buf.definition()<CR>
 nnoremap <silent> gD    <cmd>lua vim.lsp.buf.declaration()<CR>
@@ -128,7 +123,7 @@ nnoremap <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
 nnoremap <silent> K     <cmd>Lspsaga hover_doc<CR>
 nnoremap <silent> gk    <cmd>Lspsaga diagnostic_jump_prev<CR>
 nnoremap <silent> gj    <cmd>Lspsaga diagnostic_jump_next<CR>
-nnoremap <silent> gf    <cmd>lua vim.lsp.buf.formatting()<CR>
+nnoremap <silent> gf    <cmd>lua vim.lsp.buf.format{ async = true }<CR>
 nnoremap <silent> gn    <cmd>Lspsaga rename<CR>
 nnoremap <silent> ga    <cmd>Lspsaga code_action<CR>
 xnoremap <silent> ga    <cmd>Lspsaga range_code_action<CR>
@@ -141,6 +136,17 @@ nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
 lua << END
+_G.__luacache_config = {
+  chunks = {
+    enable = true,
+    path = vim.fn.stdpath('cache')..'/luacache_chunks',
+  },
+  modpaths = {
+    enable = true,
+    path = vim.fn.stdpath('cache')..'/luacache_modpaths',
+  }
+}
+require('impatient')
 require("mason").setup {}
 require("mason-lspconfig").setup {}
 require('nvim-autopairs').setup {}
@@ -152,8 +158,71 @@ saga.init_lsp_saga({
   symbol_in_winbar = {
     in_custom = true
   },
+  code_action_icon = "",
   saga_winblend = 0,
 })
+
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+    vim.lsp.diagnostic.on_publish_diagnostics, {
+        virtual_text = false
+    }
+)
+
+require'nvim-web-devicons'.setup {
+ default = true;
+}
+
+require("nvim-tree").setup{
+  open_on_setup = true,
+  open_on_tab = true,
+  view = {
+    adaptive_size = true,
+  },
+  renderer = {
+    highlight_git = true,
+  },
+}
+
+require('gitsigns').setup{
+  on_attach = function(bufnr)
+    local gs = package.loaded.gitsigns
+
+    local function map(mode, l, r, opts)
+      opts = opts or {}
+      opts.buffer = bufnr
+      vim.keymap.set(mode, l, r, opts)
+    end
+
+    -- Navigation
+    map('n', ']c', function()
+      if vim.wo.diff then return ']c' end
+      vim.schedule(function() gs.next_hunk() end)
+      return '<Ignore>'
+    end, {expr=true})
+
+    map('n', '[c', function()
+      if vim.wo.diff then return '[c' end
+      vim.schedule(function() gs.prev_hunk() end)
+      return '<Ignore>'
+    end, {expr=true})
+
+    -- Actions
+    map({'n', 'v'}, '<leader>hs', ':Gitsigns stage_hunk<CR>')
+    map({'n', 'v'}, '<leader>hr', ':Gitsigns reset_hunk<CR>')
+    map('n', '<leader>hS', gs.stage_buffer)
+    map('n', '<leader>hu', gs.undo_stage_hunk)
+    map('n', '<leader>hR', gs.reset_buffer)
+    map('n', '<leader>hp', gs.preview_hunk)
+    map('n', '<leader>hb', function() gs.blame_line{full=true} end)
+    map('n', '<leader>tb', gs.toggle_current_line_blame)
+    map('n', '<leader>hd', gs.diffthis)
+    map('n', '<leader>hD', function() gs.diffthis('~') end)
+    map('n', '<leader>td', gs.toggle_deleted)
+
+    -- Text object
+    map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+  end
+}
 
 local latte = require("catppuccin.palettes").get_palette "latte"
 local frappe = require("catppuccin.palettes").get_palette "frappe"
@@ -191,9 +260,8 @@ require("catppuccin").setup({
     telescope = true,
     nvimtree = {
       enabled = true,
-      show_root = false,
     },
-    gitgutter = true,
+    gitsigns = true,
     lsp_saga = true,
     native_lsp = {
       enabled = true,
@@ -226,19 +294,6 @@ require("catppuccin").setup({
     },
   },
 })
-
-require'nvim-web-devicons'.setup {
- default = true;
-}
-
-require("nvim-tree").setup{
-  view = {
-    adaptive_size = true,
-  },
-  renderer = {
-    highlight_git = true,
-  },
-}
 
 require('lualine').setup{
     options = {
@@ -369,7 +424,7 @@ cmp.setup.cmdline(':', {
 })
 
 -- Setup lspconfig.
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 -- Enable the following language servers
 local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer' }
