@@ -7,7 +7,7 @@ set noerrorbells
 set tabstop=4 softtabstop=4
 set shiftwidth=4
 set scrolloff=10
-set expandtab
+" set expandtab
 set smartindent
 set nu
 set nowrap
@@ -17,7 +17,6 @@ set undofile
 set incsearch
 set signcolumn=yes
 set laststatus=3
-" set shell=/bin/zsh
 
 let mapleader = " "
 
@@ -28,8 +27,6 @@ Plug 'windwp/nvim-autopairs'
 Plug 'windwp/nvim-ts-autotag'
 Plug 'onsails/lspkind-nvim'
 Plug 'catppuccin/nvim', {'as': 'catppuccin'}
-Plug 'shaunsingh/nord.nvim'
-Plug 'shaunsingh/solarized.nvim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'tpope/vim-fugitive'
 Plug 'ryanoasis/vim-devicons'
@@ -62,14 +59,6 @@ set completeopt=menu,menuone,noselect
 
 set termguicolors
 
-let g:nord_contrast = v:false
-let g:nord_cursorline_transparent = v:true
-let g:nord_disable_background = v:true
-let g:nord_uniform_diff_background = v:true
-
-" hi Pmenu guibg=#2E3440
-" hi PmenuSbar guibg=#2E3440
-
 let g:solarized_italic_comments = v:true
 let g:solarized_italic_keywords = v:true
 let g:solarized_italic_functions = v:true
@@ -101,12 +90,11 @@ nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 nnoremap <leader>fg <cmd>lua require('telescope.builtin').git_status()<cr>
 nnoremap <leader>fr <cmd>lua require('telescope.builtin').lsp_references()<cr>
 nnoremap <leader>fo <cmd>lua require('telescope.builtin').resume()<cr>
+nnoremap <leader>fs <cmd>lua require('telescope.builtin').lsp_document_symbols()<cr>
 
 nnoremap <leader>n :NvimTreeToggle<CR>
 nnoremap <leader>t :NvimTreeFocus<CR>
 nnoremap <C-f> :NvimTreeFindFile<CR>
-
-nnoremap <leader><leader> :bprevious<cr>
 
 
 if executable('rg')
@@ -154,9 +142,9 @@ require('nvim-autopairs').setup {}
 -- lspsaga config
 local keymap = vim.keymap.set
 local saga = require 'lspsaga'
-saga.init_lsp_saga({
+saga.setup({
   symbol_in_winbar = {
-    in_custom = true
+    enable = false,
   },
   code_action_icon = "",
   saga_winblend = 0,
@@ -172,9 +160,19 @@ require'nvim-web-devicons'.setup {
  default = true;
 }
 
+local function open_nvim_tree(data)
+  -- buffer is a directory
+  local directory = vim.fn.isdirectory(data.file) == 1
+  if not directory then
+    return
+  end
+  -- change to the directory
+  vim.cmd.cd(data.file)
+  -- open the tree
+  require("nvim-tree.api").tree.open()
+end
+
 require("nvim-tree").setup{
-  open_on_setup = true,
-  open_on_tab = true,
   view = {
     adaptive_size = true,
   },
@@ -182,6 +180,8 @@ require("nvim-tree").setup{
     highlight_git = true,
   },
 }
+
+vim.api.nvim_create_autocmd({ "VimEnter" }, { callback = open_nvim_tree })
 
 require('gitsigns').setup{
   on_attach = function(bufnr)
@@ -297,7 +297,6 @@ require("catppuccin").setup({
 
 require('lualine').setup{
     options = {
-        -- theme = 'nord',
         theme = 'catppuccin',
         icons_enabled = true,
     },
@@ -330,6 +329,9 @@ require'nvim-treesitter.configs'.setup{
     -- Using this option may slow down your editor, and you may see some duplicate highlights.
     -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
+  },
+  view = {
+    hide_root_folder = true,
   },
   autotag = {
     enable = true,
@@ -427,14 +429,14 @@ cmp.setup.cmdline(':', {
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 -- Enable the following language servers
-local servers = { 'dockerls', 'gopls', 'tsserver', 'sumneko_lua', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer' }
+local servers = { 'dockerls', 'gopls', 'tsserver', 'lua_ls', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer', 'jdtls', 'kotlin_language_server', 'vuels' }
 for _, lsp in ipairs(servers) do
   require('lspconfig')[lsp].setup {
     capabilities = capabilities,
   }
 end
 
-require('lspconfig')['pylsp'].setup {
+require('lspconfig').pylsp.setup {
   capabilities = capabilities,
   settings = {
     pylsp = {
@@ -448,6 +450,10 @@ require('lspconfig')['pylsp'].setup {
       }
     }
   },
+}
+
+require('lspconfig').hls.setup {
+  filetypes = { 'haskell', 'lhaskell', 'cabal' },
 }
 
 vim.opt.fillchars = {
@@ -464,5 +470,3 @@ END
 
 
 colorscheme catppuccin
-" colorscheme nord
-" colorscheme solarized
