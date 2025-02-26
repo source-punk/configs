@@ -22,7 +22,9 @@ let mapleader = " "
 
 call plug#begin(stdpath('data') . '/plugged')
 
-Plug 'lewis6991/impatient.nvim'
+Plug 'stevearc/dressing.nvim'
+Plug 'MunifTanjim/nui.nvim'
+Plug 'MeanderingProgrammer/render-markdown.nvim'
 Plug 'windwp/nvim-autopairs'
 Plug 'windwp/nvim-ts-autotag'
 Plug 'onsails/lspkind-nvim'
@@ -49,9 +51,17 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/vim-vsnip'
-Plug 'kyazdani42/nvim-web-devicons'
-Plug 'kyazdani42/nvim-tree.lua'
+Plug 'nvim-tree/nvim-web-devicons'
+Plug 'nvim-tree/nvim-tree.lua'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'slugbyte/lackluster.nvim'
+Plug 'nvim-neotest/nvim-nio'
+Plug 'stevearc/oil.nvim'
+" Plug 'rest-nvim/rest.nvim'
+Plug 'HakonHarnes/img-clip.nvim'
+Plug 'zbirenbaum/copilot.lua'
+Plug 'vhyrro/luarocks.nvim'
+Plug 'yetone/avante.nvim', { 'branch': 'main', 'do': 'make' }
 
 call plug#end()
 
@@ -116,6 +126,7 @@ nnoremap <silent> gn    <cmd>Lspsaga rename<CR>
 nnoremap <silent> ga    <cmd>Lspsaga code_action<CR>
 xnoremap <silent> ga    <cmd>Lspsaga range_code_action<CR>
 nnoremap <silent> gs    <cmd>Lspsaga signature_help<CR>
+nnoremap <silent> gb    <cmd>Lspsaga show_workspace_diagnostics<CR>
 " End LspSaga bindings
 
 nnoremap <C-h> <C-w>h
@@ -123,7 +134,15 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
+
+" autocmd! User avante.nvim 
+
 lua << END
+vim.loader.enable()
+-- require('avante_lib').load()
+-- require('avante').setup()
+require("luarocks-nvim").setup()
+
 _G.__luacache_config = {
   chunks = {
     enable = true,
@@ -134,10 +153,20 @@ _G.__luacache_config = {
     path = vim.fn.stdpath('cache')..'/luacache_modpaths',
   }
 }
-require('impatient')
 require("mason").setup {}
 require("mason-lspconfig").setup {}
 require('nvim-autopairs').setup {}
+require("oil").setup()
+
+---@type rest.Opts
+-- vim.g.rest_nvim = {
+--     "vhyrro/luarocks.nvim",
+--     opts = {
+--       rocks = {  "mimetypes", "xml2lua" }, -- Specify LuaRocks packages to install
+--     }
+-- }
+
+vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
 -- lspsaga config
 local keymap = vim.keymap.set
@@ -146,13 +175,16 @@ saga.setup({
   symbol_in_winbar = {
     enable = false,
   },
-  code_action_icon = "",
+  ui = {
+    code_action = '',
+  },
   saga_winblend = 0,
 })
 
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
     vim.lsp.diagnostic.on_publish_diagnostics, {
-        virtual_text = false
+        virtual_text = false,
+        underline = false
     }
 )
 
@@ -175,6 +207,7 @@ end
 require("nvim-tree").setup{
   view = {
     adaptive_size = true,
+    side = 'right',
   },
   renderer = {
     highlight_git = true,
@@ -333,9 +366,9 @@ require'nvim-treesitter.configs'.setup{
   view = {
     hide_root_folder = true,
   },
-  autotag = {
-    enable = true,
-  },
+  -- autotag = {
+  --   enable = true,
+  -- },
 }
 require('nvim-ts-autotag').setup()
 
@@ -429,7 +462,7 @@ cmp.setup.cmdline(':', {
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 -- Enable the following language servers
-local servers = { 'dockerls', 'gopls', 'tsserver', 'lua_ls', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer', 'jdtls', 'kotlin_language_server', 'vuels' }
+local servers = { 'dockerls', 'gopls', 'ts_ls', 'lua_ls', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer', 'jdtls', 'kotlin_language_server', 'vuels' }
 for _, lsp in ipairs(servers) do
   require('lspconfig')[lsp].setup {
     capabilities = capabilities,
@@ -454,6 +487,10 @@ require('lspconfig').pylsp.setup {
 
 require('lspconfig').hls.setup {
   filetypes = { 'haskell', 'lhaskell', 'cabal' },
+}
+
+require('ibl').setup {
+  scope = { enabled = false },
 }
 
 vim.opt.fillchars = {
