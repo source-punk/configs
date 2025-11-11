@@ -1,0 +1,14 @@
+theme = catppuccin-mocha.conf
+font-family = "Iosevka Nerd Font"
+font-style = Light
+font-style-bold = Light
+font-style-italic = "Light Italic"
+font-style-bold-italic = "Light Italic"
+font-size = "13"
+font-thicken = true
+font-thicken-strength = 50
+adjust-cell-width = 0
+adjust-cell-height = 4
+fullscreen = true
+window-save-state = always
+mouse-hide-while-typing = true

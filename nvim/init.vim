@@ -62,6 +62,8 @@ Plug 'HakonHarnes/img-clip.nvim'
 Plug 'zbirenbaum/copilot.lua'
 Plug 'vhyrro/luarocks.nvim'
 Plug 'yetone/avante.nvim', { 'branch': 'main', 'do': 'make' }
+Plug 'diepm/vim-rest-console'
+Plug 'gruvw/strudel.nvim'
 
 call plug#end()
 
@@ -103,7 +105,8 @@ nnoremap <leader>fo <cmd>lua require('telescope.builtin').resume()<cr>
 nnoremap <leader>fs <cmd>lua require('telescope.builtin').lsp_document_symbols()<cr>
 
 nnoremap <leader>n :NvimTreeToggle<CR>
-nnoremap <leader>t :NvimTreeFocus<CR>
+nnoremap <leader>t :StrudelToggle<CR>
+nnoremap <leader>u :StrudelUpdate<CR>
 nnoremap <C-f> :NvimTreeFindFile<CR>
 
 
@@ -113,6 +116,7 @@ endif
 
 let g:netrw_browse_split = 2
 let g:netrw_banner = 0
+
 
 " >> Lsp key bindings
 nnoremap <silent> gd    <cmd>lua vim.lsp.buf.definition()<CR>
@@ -129,10 +133,6 @@ nnoremap <silent> gs    <cmd>Lspsaga signature_help<CR>
 nnoremap <silent> gb    <cmd>Lspsaga show_workspace_diagnostics<CR>
 " End LspSaga bindings
 
-nnoremap <C-h> <C-w>h
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
 
 
 " autocmd! User avante.nvim 
@@ -158,6 +158,26 @@ require("mason-lspconfig").setup {}
 require('nvim-autopairs').setup {}
 require("oil").setup()
 
+require('render-markdown').setup({
+overrides = {
+        buflisted = {},
+        buftype = {
+            nofile = {
+                render_modes = false,
+                padding = { highlight = 'NormalFloat' },
+                sign = { enabled = false },
+                code = { left_pad = 0, right_pad = 0 },
+            },
+        },
+        filetype = {},
+    },
+})
+
+vim.g.vrc_response_default_content_type = 'application/json'
+vim.g.vrc_auto_format_response_patterns = {
+  json = 'jq'
+}
+
 ---@type rest.Opts
 -- vim.g.rest_nvim = {
 --     "vhyrro/luarocks.nvim",
@@ -167,6 +187,7 @@ require("oil").setup()
 -- }
 
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+vim.keymap.set("n", "<leader>xr", ":call VrcQuery()<CR>")
 
 -- lspsaga config
 local keymap = vim.keymap.set
@@ -178,6 +199,9 @@ saga.setup({
   ui = {
     code_action = '',
   },
+  hover = {
+    max_width = 1,
+  },
   saga_winblend = 0,
 })
 
@@ -187,6 +211,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
         underline = false
     }
 )
+
 
 require'nvim-web-devicons'.setup {
  default = true;
@@ -462,36 +487,37 @@ cmp.setup.cmdline(':', {
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 -- Enable the following language servers
-local servers = { 'dockerls', 'gopls', 'ts_ls', 'lua_ls', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer', 'jdtls', 'kotlin_language_server', 'vuels' }
-for _, lsp in ipairs(servers) do
-  require('lspconfig')[lsp].setup {
-    capabilities = capabilities,
-  }
-end
-
-require('lspconfig').pylsp.setup {
-  capabilities = capabilities,
-  settings = {
-    pylsp = {
-      configurationSources = { 'flake8' },
-      plugins = {
-        flake8 = { enabled = true, ignore = { 'E501', 'W503' } },
-        pylint = { enabled = false, ignore = { 'E501', 'W503' } },
-        pycodestyle = { enabled = false, ignore = { 'E501', 'W503' } },
-        pyflakes = { enabled = false, ignore = { 'E501', 'W503' } },
-        mccabe = { enabled = false, ignore = { 'E501', 'W503' } },
-      }
-    }
-  },
-}
-
-require('lspconfig').hls.setup {
-  filetypes = { 'haskell', 'lhaskell', 'cabal' },
-}
+-- local servers = { 'dockerls', 'gopls', 'ts_ls', 'lua_ls', 'cssls', 'html', 'yamlls', 'vimls', 'tflint', 'terraformls', 'rust_analyzer', 'jdtls', 'kotlin_language_server', 'vuels', 'marksman', 'clangd'}
+-- for _, lsp in ipairs(servers) do
+--   require('lspconfig')[lsp].setup {
+--     capabilities = capabilities,
+--   }
+-- end
+-- 
+-- require('lspconfig').pylsp.setup {
+--   capabilities = capabilities,
+--   settings = {
+--     pylsp = {
+--       configurationSources = { 'flake8' },
+--       plugins = {
+--         flake8 = { enabled = true, ignore = { 'E501', 'W503' } },
+--         pylint = { enabled = false, ignore = { 'E501', 'W503' } },
+--         pycodestyle = { enabled = false, ignore = { 'E501', 'W503' } },
+--         pyflakes = { enabled = false, ignore = { 'E501', 'W503' } },
+--         mccabe = { enabled = false, ignore = { 'E501', 'W503' } },
+--       }
+--     }
+--   },
+-- }
+-- 
+-- require('lspconfig').hls.setup {
+--   filetypes = { 'haskell', 'lhaskell', 'cabal' },
+-- }
 
 require('ibl').setup {
   scope = { enabled = false },
 }
+require("strudel").setup()
 
 vim.opt.fillchars = {
   horiz     = '━',
@@ -507,3 +533,7 @@ END
 
 
 colorscheme catppuccin
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l

@@ -18,7 +18,7 @@ end
 
 # Preferred editor for local and remote sessions
 if test -n $SSH_CONNECTION
-  export EDITOR='vim'
+  export EDITOR='nvim'
 else
   export EDITOR='nvim'
 end
@@ -27,8 +27,8 @@ export PATH="$PATH:$HOME/sdk/depot_tools"
 
 alias grep="rg"
 alias bat="bat --paging=never"
-alias l="exa -l"
-alias ls="exa"
+alias l="eza -l"
+alias ls="eza"
 alias vim="nvim"
 alias python="python3"
 alias pip="pip3"
@@ -36,13 +36,16 @@ alias cmatrix="cmatrix -C blue"
 alias psql="pgcli"
 alias cat="bat"
 alias f="fzf"
-alias prodtoken="aws secretsmanager get-secret-value --secret-id prod/gagan/admin-token | jq -r '.SecretString' | jq '.token'"
+alias o="yazi"
+alias prodtoken="aws secretsmanager get-secret-value --secret-id prod/gagan/admin-token | jq -r '.SecretString' | jq -r '.token'"
 
 export MANPAGER="less -s -M +Gg"
 export LESS="--RAW-CONTROL-CHARS"
 export PATH="$HOME/.poetry/bin:$PATH"
 export PATH="$PATH:$HOME/go/bin"
-export JIRA_API_TOKEN="ATATT3xFfGF0s2QfbLnURzWvIvijGj5lNm7pwyDStyxnTJzxmILFf7g0IuHN26dFdVxTM1YbZsCbEMRj02Yo5-ZJk-J5ZQicrD4idp3XnrEfN_2xI4rx47FatSA7sk0GZI_JRMujTAAu4qGhzdmcrgLG29362byPEPwOfe31zFk_8ijPliei188=3CC5595D"
+export PATH="$PATH:$HOME/.cargo/env"
+export PATH="$PATH:/opt/homebrew/Cellar/postgresql@13/13.12/bin"
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/creds"
 
 nvm use lts &> /dev/null
 
@@ -60,3 +63,7 @@ if not string match -q -- $PNPM_HOME $PATH
   set -gx PATH "$PNPM_HOME" $PATH
 end
 # pnpm end
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/srcpnk/.gcp-sdk/google-cloud-sdk/path.fish.inc' ]; . '/Users/srcpnk/.gcp-sdk/google-cloud-sdk/path.fish.inc'; end
+zoxide init --cmd cd fish | source
