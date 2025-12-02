@@ -1,0 +1,40 @@
+---@diagnostic disable: undefined-global
+-- Setup Plugin Key Maps here!!!
+--
+
+vim.keymap.set('n', '<C-h>', '<C-w>h')
+vim.keymap.set('n', '<C-j>', '<C-w>j')
+vim.keymap.set('n', '<C-k>', '<C-w>k')
+vim.keymap.set('n', '<C-l>', '<C-w>l')
+
+vim.keymap.set('n', '<esc>', ':noh<return><esc>')
+
+-- telescope
+local telescope_builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>ff',
+	function() telescope_builtin.find_files({ hidden = true, file_ignore_patterns = { ".git/", "vendor/" } }) end)
+vim.keymap.set('n', '<leader>fa', function() telescope_builtin.live_grep() end)
+vim.keymap.set('n', '<leader>fb', function() telescope_builtin.buffers() end)
+vim.keymap.set('n', '<leader>fh', function() telescope_builtin.help_tags() end)
+vim.keymap.set('n', '<leader>fg', function() telescope_builtin.git_status() end)
+vim.keymap.set('n', '<leader>fr', function() telescope_builtin.lsp_references() end)
+vim.keymap.set('n', '<leader>fo', function() telescope_builtin.resume() end)
+vim.keymap.set('n', '<leader>fs', function() telescope_builtin.lsp_document_symbols() end)
+
+--
+--nnoremap <leader>t :StrudelToggle<CR>
+--nnoremap <leader>u :StrudelUpdate<CR>
+
+-- lspsaga
+vim.keymap.set('n', 'gd', vim.lsp.buf.definition)
+vim.keymap.set('n', 'gD', vim.lsp.buf.declaration)
+vim.keymap.set('n', 'gi', vim.lsp.buf.implementation)
+vim.keymap.set('n', 'K', ':Lspsaga hover_doc<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', 'gk', ':Lspsaga diagnostic_jump_prev<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', 'gj', ':Lspsaga diagnostic_jump_next<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', 'gf', function() vim.lsp.buf.format { async = true } end)
+vim.keymap.set('n', 'gF', ':Lspsaga finder<CR>')
+vim.keymap.set('n', 'gn', ':Lspsaga rename<CR>')
+vim.keymap.set('n', 'ga', ':Lspsaga code_action<CR>')
+vim.keymap.set('n', 'gs', ':Lspsaga signature_help<CR>')
+vim.keymap.set('n', 'gb', ':Lspsaga show_workspace_diagnostics<CR>')
