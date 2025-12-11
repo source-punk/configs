@@ -8,6 +8,9 @@ return {
 	---@module 'render-markdown'
 	---@type render.md.UserConfig
 	opts = {
+		sign = {
+			enabled = false,
+		},
 		code = {
 			sign = false,
 		},
