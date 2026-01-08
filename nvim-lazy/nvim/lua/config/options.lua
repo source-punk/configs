@@ -35,7 +35,7 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 -- treesitter
--- vim.filetype.add({ extension = { wgsl = "wgsl" } })
+vim.filetype.add({ extension = { wgsl = "wgsl" } })
 
 -- oil
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
@@ -47,3 +47,25 @@ vim.g.indentLine_showFirstIndentLevel = 1
 vim.g.indentLine_color_term = 0
 vim.g.indentLine_bgcolor_term = "NONE"
 vim.g.indentLine_bgcolor_gui = "NONE"
+
+-- rustaceanvim
+vim.g.rustaceanvim = {
+	-- Plugin configuration
+	tools = {},
+	-- LSP configuration
+	server = {
+		on_attach = function(client, bufnr)
+			-- you can also put keymaps in here
+		end,
+		default_settings = {
+			-- rust-analyzer language server configuration
+			["rust-analyzer"] = {
+				diagnostics = {
+					disabled = { "inactive-code" },
+				},
+			},
+		},
+	},
+	-- DAP configuration
+	dap = {},
+}
