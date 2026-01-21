@@ -1,4 +1,15 @@
-theme = catppuccin-mocha.conf
+# Automatic dark/light switching
+# theme = dark:rose-pine.conf,light:rose-pine-dawn.conf
+theme = vague.conf
+
+# Or set individual themes
+# theme = Rose Pine
+# theme = Rose Pine Moon
+# theme = Rose Pine Dawn
+
+# theme = catppuccin-mocha.conf
+
+
 font-family = "Iosevka Nerd Font"
 font-style = Light
 font-style-bold = Light

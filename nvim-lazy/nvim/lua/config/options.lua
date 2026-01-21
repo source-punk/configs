@@ -28,6 +28,9 @@ vim.opt.undofile = true
 vim.opt.incsearch = true
 vim.opt.signcolumn = "yes"
 vim.opt.laststatus = 3
+vim.diagnostic.config({
+    underline = false,
+})
 
 vim.opt.completeopt = "menu,menuone,noselect"
 
