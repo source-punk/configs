@@ -72,3 +72,6 @@ vim.g.rustaceanvim = {
 	-- DAP configuration
 	dap = {},
 }
+
+-- tidal
+vim.cmd("autocmd BufRead,BufNewFile *.tidal set filetype=haskell")

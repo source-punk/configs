@@ -36,10 +36,6 @@ vim.keymap.set("n", "<leader>fs", function()
 	telescope_builtin.lsp_document_symbols()
 end)
 
---
---nnoremap <leader>t :StrudelToggle<CR>
---nnoremap <leader>u :StrudelUpdate<CR>
-
 -- lspsaga
 vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 vim.keymap.set("n", "gD", vim.lsp.buf.declaration)
