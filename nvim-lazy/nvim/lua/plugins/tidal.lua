@@ -48,9 +48,9 @@ return {
 		--- Set to false to disable all default mappings
 		--- @type table | nil
 		mappings = {
-			send_line = { mode = { "i", "n" }, key = "<leader>th" },
+			send_line = { mode = { "n" }, key = "<leader>th" },
 			send_visual = { mode = { "x" }, key = "<leader>th" },
-			send_block = { mode = { "i", "n", "x" }, key = "<leader>tb" },
+			send_block = { mode = { "n", "x" }, key = "<leader>tb" },
 			send_node = { mode = "n", key = "<leader>tn" },
 			send_silence = { mode = "n", key = "<leader>d" },
 			send_hush = { mode = "n", key = "<leader><Esc>" },
